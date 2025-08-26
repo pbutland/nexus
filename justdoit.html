@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Do it!</title>
   <style>
+    .help-section {
+      background: #eaf6fb;
+      border: 2px solid #7ec3e6;
+      padding: 1rem;
+      color: #234;
+      box-shadow: 0 2px 8px rgba(126,195,230,0.07);
+      font-size: 1.1em;
+    }
     .delete-btn {
       background: none;
       border: none;
@@ -199,7 +207,7 @@
     .add-task button:hover {
       background: #1a232e;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 700px) {
       .timeline.vertical { max-width: 98vw; }
     }
   </style>
@@ -224,6 +232,12 @@
         <input type="date" id="deadline-input" class="deadline-input">
       </div>
       <button id="add-task-btn">Add Task</button>
+    </section>
+    <section id="help-section" class="help-section" style="display:none">
+      <div>
+        <p>Sort your tasks by due date and group them into what needs your attention now and what can wait, so you always have a clear view of everything you need to do and when.</p>
+        <p>Tasks can be shared as JSON using the Import/Export buttons above.</p>
+      </div>
     </section>
     <details class="time-group today" open>
       <summary>Today</summary>
@@ -354,6 +368,10 @@ function renderTasks(tasks) {
     'someday': document.getElementById('someday-list'),
   };
   Object.values(groups).forEach(ul => ul.innerHTML = '');
+
+  // Track if any tasks are rendered
+  let hasTasks = tasks.length > 0;
+
   // Group tasks by group name
   const grouped = {};
   tasks.forEach(task => {
@@ -468,6 +486,12 @@ function renderTasks(tasks) {
       ul.appendChild(li);
     });
   });
+
+  // Show or hide help section
+  const helpSection = document.getElementById('help-section');
+  if (helpSection) {
+    helpSection.style.display = hasTasks ? 'none' : '';
+  }
 }
 
 // --- Add Task ---

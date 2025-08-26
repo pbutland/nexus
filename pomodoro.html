@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pomodorable</title>
   <style>
+    .help-section {
+      background: #eaf6fb;
+      border: 2px solid #7ec3e6;
+      padding: 1rem;
+      color: #234;
+      box-shadow: 0 2px 8px rgba(126,195,230,0.07);
+      font-size: 1.1em;
+    }
     .timer-card-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -382,7 +390,7 @@
       }
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 700px) {
       .timeline.vertical { max-width: 98vw; }
     }
     /* Start row and repeat group control */
@@ -424,6 +432,13 @@
     <section class="add-task">
       <input type="text" id="group-name-input" placeholder="New timer group name" />
       <button id="add-group-btn">Add Group</button>
+    </section>
+    <section id="help-section" class="help-section" style="display:none">
+      <div>
+        <p>Add a <a href="https://en.wikipedia.org/wiki/Pomodoro_Technique" target="_blank" rel="noopener">Pomodoro Timer</a> group and then add as many time intervals as you wish to each group (e.g. <b>25 minutes of work</b> followed by a <b>5-minute break</b>).</p>
+        <p>Ideal for helping you focus while doing certain tasks. For example, you can use it to plan out steps for things like <b>exercise regimens</b>, break up your study sessions when <b>studying for exams</b>, or tackle <b>cleaning or organizing</b> a room in short, focused bursts.</p>
+        <p>Timer groups can be shared as JSON using the Import/Export buttons above.</p>
+      </div>
     </section>
   <!-- Sections are rendered dynamically by JS -->
   </main>
@@ -516,6 +531,15 @@ function renderAll() {
   const groups = payload.groups;
   const main = document.querySelector('main.timeline');
   main.querySelectorAll('.time-group').forEach(sec => sec.remove());
+
+  // Track if any groups are rendered
+  const hasGroups = groups.length > 0;
+
+  // Show or hide help section
+  const helpSection = document.getElementById('help-section');
+  if (helpSection) {
+    helpSection.style.display = hasGroups ? 'none' : '';
+  }
 
   groups.forEach(group => {
     const details = document.createElement('details');

@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Listrocity</title>
   <style>
+    .help-section {
+      background: #eaf6fb;
+      border: 2px solid #7ec3e6;
+      padding: 1rem;
+      color: #234;
+      box-shadow: 0 2px 8px rgba(126,195,230,0.07);
+      font-size: 1.1em;
+    }
     .delete-btn {
       background: none;
       border: none;
@@ -204,7 +212,7 @@
     .add-task button:hover {
       background: #1a232e;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 700px) {
       .timeline.vertical { max-width: 98vw; }
     }
   </style>
@@ -231,6 +239,14 @@
       <button id="add-category-btn" type="button" title="Add new category" class="add-category-btn">+</button>
       </div>
       <button id="add-thing-btn">Add Thing</button>
+    </section>
+    <section id="help-section" class="help-section" style="display:none">
+      <div>
+        <p>Create as many lists about as many things as you wish. No need to remember a single thing ever again. Let the lists remember for you.</p>
+        <p>Enter a title. If you provide a valid URL, the title will be displayed as a clickable link.</p>
+        <p>Select an existing category for your thing, or create a new category using the <b>+</b> button.</p>
+        <p>Lists can be shared as JSON using the Import/Export buttons above.</p>
+      </div>
     </section>
   <!-- Sections are rendered dynamically by JS -->
   </main>
@@ -346,11 +362,15 @@ function renderAll() {
     grouped[group].push(thing);
   });
 
+  // Track if any lists are rendered
+  let hasLists = false;
+
   // For each category, render a section
   categories.forEach(cat => {
     let groupThings = grouped[cat] || [];
     // Hide section if empty
     if (groupThings.length === 0) return;
+    hasLists = true;
     const details = document.createElement('details');
     details.className = 'time-group ' + cat.toLowerCase();
     details.open = true;
@@ -366,8 +386,8 @@ function renderAll() {
     const ul = document.createElement('ul');
     ul.className = 'task-list';
     ul.id = cat.toLowerCase() + '-list';
-  // Sort items alphanumerically (natural sort) by title (case-insensitive)
-  groupThings = groupThings.slice().sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' }));
+    // Sort items alphanumerically (natural sort) by title (case-insensitive)
+    groupThings = groupThings.slice().sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' }));
     groupThings.forEach(thing => {
       const li = document.createElement('li');
       li.className = 'task';
@@ -406,6 +426,12 @@ function renderAll() {
     details.appendChild(ul);
     main.appendChild(details);
   });
+
+  // Show or hide help section
+  const helpSection = document.getElementById('help-section');
+  if (helpSection) {
+    helpSection.style.display = hasLists ? 'none' : '';
+  }
 }
 
 // --- Add Thing ---
