@@ -467,13 +467,13 @@ document.getElementById('import-input').onchange = function(e) {
   reader.onload = function(evt) {
     try {
       const imported = JSON.parse(evt.target.result);
-      if (!imported || typeof imported !== 'object' || !Array.isArray(imported.categories) || !Array.isArray(imported.things)) {
-        throw new Error('Invalid format: must be an object with categories and things arrays');
+      if (!imported || typeof imported !== 'object' || !Array.isArray(imported.groups)) {
+        throw new Error('Invalid format: must be an object with groups');
       }
-      if (!confirm('Importing will replace all current items and categories. Continue?')) return;
+      if (!confirm('Importing will replace all current items and groups. Continue?')) return;
       savePayload(imported);
       renderAll();
-      alert('Things imported successfully.');
+      alert('Groups imported successfully.');
     } catch (err) {
       alert('Import failed: ' + err.message);
     }
