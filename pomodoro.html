@@ -859,17 +859,23 @@ function startTimerSession(group) {
     controls.className = 'timer-controls';
     const pauseBtn = document.createElement('button');
     pauseBtn.className = 'timer-pause-btn';
-    pauseBtn.innerHTML = paused ? '\u25B6' : '\u23F8'; // Play ▶ or Pause ⏸
+    const pauseSVG = `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" enable-background=\"new 0 0 64 64\"><polygon points=\"24,18 24,46 46,32\" fill=\"#fff\" /></svg>`;
+    const playSVG = `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" enable-background=\"new 0 0 64 64\"><rect x=\"20\" y=\"16\" width=\"8\" height=\"32\" rx=\"2\" fill=\"#fff\" /><rect x=\"36\" y=\"16\" width=\"8\" height=\"32\" rx=\"2\" fill=\"#fff\" /></svg>`;
+    pauseBtn.innerHTML = paused
+      ? pauseSVG
+      : playSVG;
     pauseBtn.title = paused ? 'Resume' : 'Pause';
     pauseBtn.onclick = e => {
       e.preventDefault();
       paused = !paused;
-      pauseBtn.innerHTML = paused ? '\u25B6' : '\u23F8';
+      pauseBtn.innerHTML = paused
+        ? pauseSVG
+        : playSVG;
       pauseBtn.title = paused ? 'Resume' : 'Pause';
     };
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'timer-cancel-btn';
-    cancelBtn.innerHTML = '\u2716'; // Heavy Multiplication X ✖
+    cancelBtn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" enable-background=\"new 0 0 64 64\"><rect x=\"28\" y=\"16\" width=\"8\" height=\"32\" rx=\"2\" fill=\"#fff\" transform=\"rotate(45 32 32)\" /><rect x=\"28\" y=\"16\" width=\"8\" height=\"32\" rx=\"2\" fill=\"#fff\" transform=\"rotate(-45 32 32)\" /></svg>`;
     cancelBtn.title = 'Cancel';
     cancelBtn.onclick = e => {
       e.preventDefault();
