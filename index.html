@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Home</title>
+  <style>
+    .subtitle {
+      margin: 0.2em 0 0 0;
+      font-size: 1.1em;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #2d3a4a;
+      color: #fff;
+      padding: 0.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 500px;
+      margin: 4rem auto 0 auto;
+      width: 90vw;
+    }
+    .home-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #fff;
+      text-decoration: none;
+      padding: 2.5rem 1rem;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s, border 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      cursor: pointer;
+    }
+    .btn-listrocity {
+      background: #b2c6e3;
+      border-color: #b2c6e3;
+      color: #22335c;
+    }
+    .btn-listrocity:hover, .btn-listrocity:active {
+      background: #8fa8c9;
+      border-color: #8fa8c9;
+      color: #16213a;
+    }
+    .btn-justdoit {
+      background: #8fd6c1;
+      border-color: #8fd6c1;
+      color: #20635f;
+    }
+    .btn-justdoit:hover, .btn-justdoit:active {
+      background: #6bb7a2;
+      border-color: #6bb7a2;
+      color: #13413e;
+    }
+      .btn-pomodorable {
+        background: #f7b267;
+        border-color: #f7b267;
+        color: #7a3e00;
+      }
+      .btn-pomodorable:hover, .btn-pomodorable:active {
+        background: #f4845f;
+        border-color: #f4845f;
+        color: #4e2600;
+      }
+  /* Removed .home-btn:hover to allow specific button hover styles to take effect */
+    @media (max-width: 700px) {
+      .home-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+        margin-top: 2.5rem;
+      }
+      .home-btn {
+        padding: 1.5rem 0.5rem;
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+  <h1>Welcome to Nexus</h1>
+  <p class="subtitle">Productivity Hub</p>
+  </header>
+  <main>
+    <div class="home-grid">
+    <a class="home-btn btn-listrocity" href="listrocity.html">☰ Listrocity</a>
+    <a class="home-btn btn-justdoit" href="justdoit.html">✔ Just Do It</a>
+    <a class="home-btn btn-pomodorable" href="pomodoro.html">◷ Pomodorable</a>
+    </div>
+  </main>
+</body>
+</html>

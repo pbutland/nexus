@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listrocity</title>
+  <style>
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      padding: 0.2rem 0.3rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: background 0.15s;
+    }
+    .delete-btn:hover {
+      background: #ffeaea;
+    }
+    .delete-btn svg {
+      width: 1.1em;
+      height: 1.1em;
+      fill: #c0392b;
+      pointer-events: none;
+      display: block;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    header {
+      background: #2d3a4a;
+      color: #fff;
+      padding: 0.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .subtitle {
+      margin: 0.2em 0 0 0;
+      font-size: 1.1em;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+    .import-export-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0 0 0;
+    }
+    .import-export-btn {
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #f7f8fa;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .import-export-btn:hover {
+      background: #e9ecef;
+    }
+    .import-label {
+      margin: 0;
+      display: inline-block;
+    }
+    .category-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0;
+    }
+
+    #category-input {
+      margin-left: auto;
+      margin-right: 1em;
+    }
+
+    .add-category-btn {
+      padding: 0.4em 0.8em;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #f7f8fa;
+      cursor: pointer;
+      font-size: 1em;
+      margin-left: 0;
+      margin-right: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .add-category-btn:hover {
+      background: #e9ecef;
+    }
+    .timeline.vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem 1rem;
+      margin: 0 auto;
+      max-width: 450px;
+    }
+    .time-group {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      position: relative;
+      margin-bottom: 0.5rem;
+    }
+  /* Category border color is now set dynamically via JS */
+    details.time-group {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      position: relative;
+      border-radius: 0;
+    }
+    details.time-group summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.5em;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      list-style: none;
+      border-radius: 8px 8px 0 0;
+      padding: 0.5em 0;
+      user-select: none;
+    }
+    details.time-group summary::-webkit-details-marker {
+      display: none;
+    }
+    /* Remove the pseudo-element, use inline SVG instead */
+    .arrowhead {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      margin-left: 0.5em;
+      vertical-align: middle;
+      transition: transform 0.2s;
+    }
+    details.time-group[open] .arrowhead {
+      transform: rotate(180deg);
+    }
+  /* Category border color is now set dynamically via JS */
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.6em 0 0 0;
+      flex: 1;
+    }
+    .task {
+      background: #f4f6fb;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 0.9rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.2rem;
+      margin-left: auto;
+      align-items: center;
+    }
+  /* No overdue or deadline styling needed */
+    .add-task {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .add-task input, .add-task select {
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+    .add-task button {
+      background: #2d3a4a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .add-task button:hover {
+      background: #1a232e;
+    }
+    @media (max-width: 900px) {
+      .timeline.vertical { max-width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>☰ Listrocity</h1>
+    <p class="subtitle">An Astrocity of Lists</p>
+  </header>
+  <div class="import-export-bar">
+    <button id="export-btn" class="import-export-btn">Export</button>
+    <label class="import-export-btn import-label">
+      Import
+      <input id="import-input" type="file" accept="application/json" style="display:none;">
+    </label>
+  </div>
+  <main class="timeline vertical">
+    <section class="add-task">
+  <input type="text" id="thing-title-input" placeholder="Title" />
+  <input type="url" id="thing-url-input" placeholder="URL (optional)" />
+      <div class="category-row">
+      <label for="category-input">Category:</label>
+      <select id="category-input"></select>
+      <button id="add-category-btn" type="button" title="Add new category" class="add-category-btn">+</button>
+      </div>
+      <button id="add-thing-btn">Add Thing</button>
+    </section>
+  <!-- Sections are rendered dynamically by JS -->
+  </main>
+</body>
+<script>
+// --- Import/Export ---
+document.getElementById('export-btn').onclick = function() {
+  const payload = loadPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'things-list.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
+};
+
+document.getElementById('import-input').onchange = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const imported = JSON.parse(evt.target.result);
+      if (!imported || typeof imported !== 'object' || !Array.isArray(imported.categories) || !Array.isArray(imported.things)) {
+        throw new Error('Invalid format: must be an object with categories and things arrays');
+      }
+      if (!confirm('Importing will replace all current items and categories. Continue?')) return;
+      savePayload(imported);
+      renderAll();
+      alert('Things imported successfully.');
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+// --- Storage ---
+const STORAGE_KEY = 'listofthings_payload';
+const DEFAULT_CATEGORIES = ["Art", "Books", "Films", "Music", "Podcasts", "Quotes", "TV", "Websites"];
+function loadPayload() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return { categories: [...DEFAULT_CATEGORIES], things: [] };
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') throw new Error();
+    if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.things)) throw new Error();
+    return parsed;
+  } catch {
+    return { categories: [...DEFAULT_CATEGORIES], things: [] };
+  }
+}
+function savePayload(payload) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+// --- Grouping ---
+function getThingGroup(thing, categories) {
+  if (!thing.category) return categories[categories.length - 1] || 'Other';
+  // Find category case-insensitively
+  const found = categories.find(cat => cat.toLowerCase() === thing.category.toLowerCase());
+  return found || categories[categories.length - 1] || 'Other';
+}
+
+// --- Hash to HSL color ---
+function hashCategoryToColor(category) {
+  // Simple hash function (djb2)
+  let hash = 5381;
+  for (let i = 0; i < category.length; i++) {
+    hash = ((hash << 5) + hash) + category.charCodeAt(i);
+  }
+  // Map hash to hue (0-359)
+  const hue = Math.abs(hash) % 360;
+  // Optionally, vary saturation and lightness for more distinction
+  const sat = 65;
+  const light = 55;
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
+
+// --- Rendering ---
+function renderAll() {
+  const payload = loadPayload();
+  const categories = [...payload.categories].sort((a, b) => a.localeCompare(b));
+  const things = payload.things;
+
+  // Render category dropdown
+  const catSelect = document.getElementById('category-input');
+  catSelect.innerHTML = '';
+  categories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    catSelect.appendChild(opt);
+  });
+
+  // Remove all existing category sections
+  const main = document.querySelector('main.timeline');
+  main.querySelectorAll('.time-group').forEach(sec => sec.remove());
+
+  // Group things by category
+  const grouped = {};
+  things.forEach(thing => {
+    const group = getThingGroup(thing, categories);
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push(thing);
+  });
+
+  // For each category, render a section
+  categories.forEach(cat => {
+    let groupThings = grouped[cat] || [];
+    // Hide section if empty
+    if (groupThings.length === 0) return;
+    const details = document.createElement('details');
+    details.className = 'time-group ' + cat.toLowerCase();
+    details.open = true;
+    // Set border color dynamically
+    details.style.borderTop = `4px solid ${hashCategoryToColor(cat)}`;
+    const summary = document.createElement('summary');
+    // Add category name and inline SVG arrowhead
+    summary.innerHTML = `${cat}
+      <svg class="arrowhead" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="4,6 9,12 14,6" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>`;
+    details.appendChild(summary);
+    const ul = document.createElement('ul');
+    ul.className = 'task-list';
+    ul.id = cat.toLowerCase() + '-list';
+  // Sort items alphanumerically (natural sort) by title (case-insensitive)
+  groupThings = groupThings.slice().sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' }));
+    groupThings.forEach(thing => {
+      const li = document.createElement('li');
+      li.className = 'task';
+      // Thing title, optionally as a hyperlink
+      const textSpan = document.createElement('span');
+      if (thing.url && thing.url.trim()) {
+        let href = thing.url.trim();
+        if (!/^https?:\/\//i.test(href)) {
+          href = 'http://' + href;
+        }
+        textSpan.innerHTML = `<a href="${href}" target="_blank" rel="noopener noreferrer">${thing.title}</a>`;
+      } else {
+        textSpan.textContent = thing.title;
+      }
+      li.appendChild(textSpan);
+      // Button group for right alignment
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'btn-group';
+      // Delete button
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.title = 'Delete';
+      delBtn.innerHTML = `<svg viewBox=\"0 0 24 24\"><path d=\"M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zm-7 4v6m4-6v6\" stroke=\"#c0392b\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
+      delBtn.onclick = () => {
+        const idx = things.findIndex(t => t.id === thing.id);
+        if (idx !== -1) {
+          things.splice(idx, 1);
+          savePayload({ categories, things });
+          renderAll();
+        }
+      };
+      btnGroup.appendChild(delBtn);
+      li.appendChild(btnGroup);
+      ul.appendChild(li);
+    });
+    details.appendChild(ul);
+    main.appendChild(details);
+  });
+}
+
+// --- Add Thing ---
+document.getElementById('add-thing-btn').onclick = function() {
+  const title = document.getElementById('thing-title-input').value.trim();
+  const url = document.getElementById('thing-url-input').value.trim();
+  const category = document.getElementById('category-input').value;
+  if (!title) return;
+  const payload = loadPayload();
+  payload.things.push({
+    id: Date.now() + Math.random().toString(36).slice(2),
+    title,
+    url: url || undefined,
+    category
+  });
+  savePayload(payload);
+  renderAll();
+  document.getElementById('thing-title-input').value = '';
+  document.getElementById('thing-url-input').value = '';
+  document.getElementById('category-input').value = payload.categories[0] || '';
+};
+
+// --- Initial Load ---
+// --- Add Category ---
+document.getElementById('add-category-btn').onclick = function() {
+  let newCat = prompt('Enter new category name:');
+  if (!newCat) return;
+  newCat = newCat.trim();
+  if (!newCat) return alert('Category name cannot be empty.');
+  const payload = loadPayload();
+  // Check for duplicates (case-insensitive)
+  if (payload.categories.some(cat => cat.toLowerCase() === newCat.toLowerCase())) {
+    alert('Category already exists.');
+    return;
+  }
+  payload.categories.push(newCat);
+  // Sort alphabetically
+  payload.categories.sort((a, b) => a.localeCompare(b));
+  savePayload(payload);
+  renderAll();
+  // Set dropdown to new category
+  document.getElementById('category-input').value = newCat;
+};
+window.addEventListener('DOMContentLoaded', () => {
+  renderAll();
+});
+</script>
+</html>

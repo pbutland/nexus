@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodorable</title>
+  <style>
+    .timer-card-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(247, 248, 250, 0.98);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .timer-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+      padding: 2em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 380px;
+      min-height: 420px;
+      max-width: 98vw;
+      max-height: 98vh;
+      justify-content: center;
+    }
+    .timer-circle {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+    .timer-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
+    }
+    .timer-time {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 5em;
+      font-weight: 700;
+      color: #555;
+      text-align: center;
+      letter-spacing: 1px;
+      z-index: 2;
+      width: 100%;
+    }
+    .timer-unit {
+      display: block;
+      font-size: 0.5em;
+      font-weight: 400;
+      color: #888;
+      margin-top: 0.2em;
+    }
+    .timer-controls {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1.5em;
+      z-index: 2;
+      width: 100%;
+      justify-content: center;
+    }
+    .timer-pause-btn, .timer-cancel-btn {
+      background: #2d3a4a;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 2.1em;
+      height: 2.1em;
+      font-size: 1.5em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .timer-pause-btn:hover {
+      background: #1a232e;
+    }
+    .timer-cancel-btn {
+      background: #c0392b;
+    }
+    .timer-cancel-btn:hover {
+      background: #a93226;
+    }
+    .timer-start-btn {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.7em 1.5em;
+      font-size: 1em;
+      cursor: pointer;
+      align-self: flex-end;
+      transition: background 0.2s, opacity 0.2s;
+      opacity: 1;
+    }
+    .timer-start-btn:disabled {
+      background: #b7e1c2;
+      color: #fff;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .timer-form {
+      display: flex;
+      gap: 0.5em;
+      margin: 0.5em 0;
+      align-items: center;
+      background: #f4f6fb;
+      border-radius: 6px;
+      padding: 0.5em 0.7em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      flex-wrap: wrap;
+    }
+    .timer-title-input {
+      padding: 0.5em 0.7em;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+      font-size: 1em;
+      background: #fff;
+      margin-right: 0.2em;
+      flex-grow: 1;
+    }
+    .timer-input {
+      width: 5em;
+      padding: 0.5em 0.7em;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+      font-size: 1em;
+      background: #fff;
+      margin-right: 0.2em;
+    }
+    .timer-select {
+      padding: 0.5em 0.7em;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+      font-size: 1em;
+      background: #fff;
+      margin-right: 0.2em;
+    }
+    .timer-add-btn {
+      background: #2d3a4a;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.5em 1.1em;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .timer-add-btn:hover {
+      background: #1a232e;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      padding: 0.2rem 0.3rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: background 0.15s;
+    }
+    .delete-btn:hover {
+      background: #ffeaea;
+    }
+    .delete-btn svg {
+      width: 1.1em;
+      height: 1.1em;
+      fill: #c0392b;
+      pointer-events: none;
+      display: block;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    header {
+      background: #2d3a4a;
+      color: #fff;
+      padding: 0.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .subtitle {
+      margin: 0.2em 0 0 0;
+      font-size: 1.1em;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+    .import-export-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0 0 0;
+    }
+    .import-export-btn {
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #f7f8fa;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .import-export-btn:hover {
+      background: #e9ecef;
+    }
+    .import-label {
+      margin: 0;
+      display: inline-block;
+    }
+    .category-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0;
+    }
+
+    #category-input {
+      margin-left: auto;
+      margin-right: 1em;
+    }
+
+    .add-category-btn {
+      padding: 0.4em 0.8em;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #f7f8fa;
+      cursor: pointer;
+      font-size: 1em;
+      margin-left: 0;
+      margin-right: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .add-category-btn:hover {
+      background: #e9ecef;
+    }
+    .timeline.vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem 1rem;
+      margin: 0 auto;
+      max-width: 600px;
+    }
+    .time-group {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      position: relative;
+      margin-bottom: 0.5rem;
+    }
+  /* Category border color is now set dynamically via JS */
+    details.time-group {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      position: relative;
+      border-radius: 0;
+    }
+    details.time-group summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.5em;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      list-style: none;
+      border-radius: 8px 8px 0 0;
+      padding: 0.5em 0;
+      user-select: none;
+    }
+    details.time-group summary::-webkit-details-marker {
+      display: none;
+    }
+    /* Remove the pseudo-element, use inline SVG instead */
+    .arrowhead {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      margin-left: 0.5em;
+      vertical-align: middle;
+      transition: transform 0.2s;
+    }
+    details.time-group[open] .arrowhead {
+      transform: rotate(180deg);
+    }
+  /* Category border color is now set dynamically via JS */
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.6em 0 0 0;
+      flex: 1;
+    }
+    .task {
+      background: #f4f6fb;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 0.9rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.2rem;
+      margin-left: auto;
+      align-items: center;
+    }
+  /* No overdue or deadline styling needed */
+    .add-task {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 1rem;
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+    }
+    .add-task input, .add-task select {
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      flex-grow: 1;
+    }
+    .add-task button {
+      background: #2d3a4a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .add-task button:hover {
+      background: #1a232e;
+    }
+    /* Responsive timer form: stack on small screens */
+    @media (max-width: 600px) {
+      .timer-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4em;
+      }
+      .add-task {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .timeline.vertical { max-width: 98vw; }
+    }
+    /* Start row and repeat group control */
+    .timer-start-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1em;
+    }
+    .repeat-group-control {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      font-size: 1em;
+      gap: 0.4em;
+    }
+    .repeat-group-input {
+      width: 2em;
+      text-align: center;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      padding: 0.2em 0.3em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>◷ Pomodorable</h1>
+    <p class="subtitle">It's Time</p>
+  </header>
+  <div class="import-export-bar">
+    <button id="export-btn" class="import-export-btn">Export</button>
+    <label class="import-export-btn import-label">
+      Import
+      <input id="import-input" type="file" accept="application/json" style="display:none;">
+    </label>
+  </div>
+  <main class="timeline vertical">
+    <section class="add-task">
+      <input type="text" id="group-name-input" placeholder="New timer group name" />
+      <button id="add-group-btn">Add Group</button>
+    </section>
+  <!-- Sections are rendered dynamically by JS -->
+  </main>
+</body>
+<script>
+// --- Import/Export ---
+document.getElementById('export-btn').onclick = function() {
+  const payload = loadPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pomodoro-timers.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
+};
+
+document.getElementById('import-input').onchange = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const imported = JSON.parse(evt.target.result);
+      if (!imported || typeof imported !== 'object' || !Array.isArray(imported.categories) || !Array.isArray(imported.things)) {
+        throw new Error('Invalid format: must be an object with categories and things arrays');
+      }
+      if (!confirm('Importing will replace all current items and categories. Continue?')) return;
+      savePayload(imported);
+      renderAll();
+      alert('Things imported successfully.');
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+// --- Storage ---
+const STORAGE_KEY = 'timer_groups_payload';
+function loadPayload() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return { groups: [] };
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') throw new Error();
+    if (!Array.isArray(parsed.groups)) throw new Error();
+    return parsed;
+  } catch {
+    return { groups: [] };
+  }
+}
+function savePayload(payload) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+// --- Grouping ---
+function getThingGroup(thing, categories) {
+  if (!thing.category) return categories[categories.length - 1] || 'Other';
+  // Find category case-insensitively
+  const found = categories.find(cat => cat.toLowerCase() === thing.category.toLowerCase());
+  return found || categories[categories.length - 1] || 'Other';
+}
+
+// --- Hash to HSL color ---
+function hashCategoryToColor(category) {
+  // Simple hash function (djb2)
+  let hash = 5381;
+  for (let i = 0; i < category.length; i++) {
+    hash = ((hash << 5) + hash) + category.charCodeAt(i);
+  }
+  // Map hash to hue (0-359)
+  const hue = Math.abs(hash) % 360;
+  // Optionally, vary saturation and lightness for more distinction
+  const sat = 65;
+  const light = 55;
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
+
+// --- Rendering ---
+function renderAll() {
+  const payload = loadPayload();
+  const groups = payload.groups;
+  const main = document.querySelector('main.timeline');
+  main.querySelectorAll('.time-group').forEach(sec => sec.remove());
+
+  groups.forEach(group => {
+    const details = document.createElement('details');
+    details.className = 'time-group';
+    details.open = true;
+    details.style.borderTop = `4px solid ${hashCategoryToColor(group.name)}`;
+    const summary = document.createElement('summary');
+    // Clear summary and build: title, delete, arrow
+    summary.innerHTML = '';
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = group.name;
+    summary.appendChild(titleSpan);
+    // Delete group button right after title
+    const delGroupBtn = document.createElement('button');
+    delGroupBtn.className = 'delete-btn';
+    delGroupBtn.title = 'Delete group';
+    delGroupBtn.style.marginLeft = '0.7em';
+    delGroupBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zm-7 4v6m4-6v6" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+    delGroupBtn.onclick = () => {
+      const idx = payload.groups.findIndex(g => g.id === group.id);
+      if (idx !== -1) {
+        payload.groups.splice(idx, 1);
+        savePayload(payload);
+        renderAll();
+      }
+    };
+    summary.appendChild(delGroupBtn);
+    // Arrowhead at end
+    const arrow = document.createElement('span');
+    arrow.innerHTML = `<svg class="arrowhead" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><polyline points="4,6 9,12 14,6" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+    arrow.style.marginLeft = 'auto';
+    summary.appendChild(arrow);
+    details.appendChild(summary);
+
+    // Add timer form
+    const timerForm = document.createElement('form');
+    timerForm.className = 'timer-form';
+    timerForm.onsubmit = e => {
+      e.preventDefault();
+      const title = timerForm.querySelector('.timer-title-input').value.trim();
+      const num = timerForm.querySelector('.timer-input').value;
+      const unit = timerForm.querySelector('.timer-select').value;
+      if (!num || isNaN(num) || num <= 0) return;
+      group.timers.push({ id: Date.now() + Math.random().toString(36).slice(2), value: Number(num), unit, title });
+      savePayload(payload);
+      renderAll();
+    };
+    // Title input
+    const titleInput = document.createElement('input');
+  titleInput.type = 'text';
+  titleInput.placeholder = 'Title (optional)';
+  titleInput.className = 'timer-title-input';
+    // Time input
+    const numInput = document.createElement('input');
+    numInput.type = 'number';
+    numInput.min = '0.01';
+    numInput.step = 'any';
+    numInput.placeholder = 'Time';
+    numInput.className = 'timer-input';
+    // Unit select
+    const unitSelect = document.createElement('select');
+    unitSelect.className = 'timer-select';
+    ['seconds', 'minutes'].forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u;
+      opt.textContent = u;
+      unitSelect.appendChild(opt);
+    });
+    // Add button
+    const addBtn = document.createElement('button');
+    addBtn.type = 'submit';
+    addBtn.textContent = 'Add';
+    addBtn.className = 'timer-add-btn';
+    // Append inputs to form
+    timerForm.appendChild(titleInput);
+    timerForm.appendChild(numInput);
+    timerForm.appendChild(unitSelect);
+    timerForm.appendChild(addBtn);
+    details.appendChild(timerForm);
+
+    // List timers
+    const ul = document.createElement('ul');
+    ul.className = 'task-list';
+    (group.timers || []).forEach(timer => {
+      const li = document.createElement('li');
+      li.className = 'task';
+      // Show title if present, then time/unit
+      if (timer.title && timer.title.trim()) {
+        li.innerHTML = `<strong>${timer.title}</strong> <span style="color:#888;font-size:0.95em;">(${timer.value} ${timer.unit})</span>`;
+      } else {
+        li.textContent = `${timer.value} ${timer.unit}`;
+      }
+      // Delete timer button
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'btn-group';
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.title = 'Delete timer';
+      delBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zm-7 4v6m4-6v6" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+      delBtn.onclick = () => {
+        const idx = group.timers.findIndex(t => t.id === timer.id);
+        if (idx !== -1) {
+          group.timers.splice(idx, 1);
+          savePayload(payload);
+          renderAll();
+        }
+      };
+      btnGroup.appendChild(delBtn);
+      li.appendChild(btnGroup);
+      ul.appendChild(li);
+    });
+    details.appendChild(ul);
+
+  // Row for Start button and repeat control
+  const startRow = document.createElement('div');
+  startRow.className = 'timer-start-row';
+
+  // Start button (left)
+  const startBtn = document.createElement('button');
+  startBtn.className = 'timer-start-btn';
+  startBtn.textContent = 'Start';
+  startBtn.type = 'button';
+  startBtn.disabled = !(group.timers && group.timers.length > 0);
+  startBtn.onclick = () => startTimerSession(group);
+  startRow.appendChild(startBtn);
+
+  // Repeat group control (right)
+  const repeatDiv = document.createElement('div');
+  repeatDiv.className = 'repeat-group-control';
+  // Label
+  const repeatLabel = document.createElement('span');
+  repeatLabel.textContent = 'Run group';
+  repeatDiv.appendChild(repeatLabel);
+  // Numeric input
+  const repeatInput = document.createElement('input');
+  repeatInput.type = 'number';
+  repeatInput.min = '1';
+  repeatInput.value = group.repeatCount || 1;
+  repeatInput.className = 'repeat-group-input';
+  repeatInput.id = `repeat-group-input-${group.id}`;
+  repeatInput.addEventListener('change', function() {
+    let val = parseInt(this.value, 10);
+    if (isNaN(val) || val < 1) val = 1;
+    this.value = val;
+    group.repeatCount = val;
+    savePayload(payload);
+  });
+  repeatDiv.appendChild(repeatInput);
+  // Suffix
+  const repeatSuffix = document.createElement('span');
+  repeatSuffix.textContent = 'time(s)';
+  repeatDiv.appendChild(repeatSuffix);
+
+  startRow.appendChild(repeatDiv);
+  details.appendChild(startRow);
+
+  // --- Beep function for last 5 seconds ---
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 880;
+      oscillator.connect(ctx.destination);
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+        ctx.close();
+      }, 120);
+    } catch (e) {}
+  }
+
+  // --- Buzzer sound for timer end ---
+  function buzzer() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = 'square'; // Buzzer sound
+      oscillator.frequency.value = 330;
+      gain.gain.value = 0.12;
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      // Quick on/off for a soft buzzer effect
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.64);
+      setTimeout(() => {
+        oscillator.stop();
+        ctx.close();
+      }, 680);
+    } catch (e) {}
+  }
+
+// --- Timer Card Logic ---
+let timerSession = null;
+function startTimerSession(group) {
+  // Hide main UI
+  document.querySelector('.import-export-bar').style.display = 'none';
+  document.querySelector('main.timeline').style.display = 'none';
+  // Remove any existing card
+  document.getElementById('timer-card-overlay')?.remove();
+
+  // Build overlay/card
+  const overlay = document.createElement('div');
+  overlay.className = 'timer-card-overlay';
+  overlay.id = 'timer-card-overlay';
+  const card = document.createElement('div');
+  card.className = 'timer-card';
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  // Determine repeat count from group or default to 1
+  let repeatCount = 1;
+  if (typeof group.repeatCount === 'number' && group.repeatCount > 0) {
+    repeatCount = group.repeatCount;
+  } else {
+    // Try to get from the input field if present (by id)
+    const repeatInput = document.getElementById(`repeat-group-input-${group.id}`);
+    if (repeatInput && repeatInput.value) {
+      let val = parseInt(repeatInput.value, 10);
+      if (!isNaN(val) && val > 0) repeatCount = val;
+    }
+  }
+
+  // State
+  let timers = group.timers.map(t => ({...t}));
+  let idx = 0;
+  let currentCycle = 1;
+  let paused = false;
+  let interval = null;
+  let remaining = timers.length > 0 ? (timers[0].unit === 'minutes' ? timers[0].value * 60 : timers[0].value) : 0;
+  let total = remaining;
+
+  function formatTime(val, unit) {
+    if (unit === 'minutes') {
+      const mins = Math.floor(val / 60);
+      const secs = val % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    } else {
+      return val.toString();
+    }
+  }
+
+  // --- Smooth progress animation additions ---
+  let fg = null, circ = null, radius = 140, stroke = 18, svg = null, timeDiv = null, circleDiv = null;
+  let animating = false;
+  let animationFrameId = null;
+  let timerStartTime = null;
+  let timerPausedAt = null;
+  let timerAccumulatedPause = 0;
+
+  function renderTimer() {
+    card.innerHTML = '';
+    if (idx >= timers.length) {
+      // Done! Clean up and restore UI
+      overlay.remove();
+      document.querySelector('.import-export-bar').style.display = '';
+      document.querySelector('main.timeline').style.display = '';
+      timerSession = null;
+      return;
+    }
+    const t = timers[idx];
+    total = t.unit === 'minutes' ? t.value * 60 : t.value;
+    if (remaining > total || remaining === undefined || remaining === null) remaining = total;
+
+    // --- Timer Title ---
+    if (t.title && t.title.trim()) {
+      const titleDiv = document.createElement('div');
+      titleDiv.textContent = t.title;
+      titleDiv.style.fontSize = '1.5em';
+      titleDiv.style.fontWeight = '600';
+      titleDiv.style.marginBottom = '0.7em';
+      titleDiv.style.textAlign = 'center';
+      card.appendChild(titleDiv);
+    }
+
+    // Timer circle
+    circleDiv = document.createElement('div');
+    circleDiv.className = 'timer-circle';
+    radius = 140;
+    stroke = 18;
+    circ = 2 * Math.PI * radius;
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '320');
+    svg.setAttribute('height', '320');
+    svg.classList.add('timer-svg');
+    // Background ring
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bg.setAttribute('cx', '160');
+    bg.setAttribute('cy', '160');
+    bg.setAttribute('r', radius);
+    bg.setAttribute('stroke', '#e9ecef');
+    bg.setAttribute('stroke-width', stroke);
+    bg.setAttribute('fill', 'none');
+    svg.appendChild(bg);
+    // Foreground ring
+    fg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    fg.setAttribute('cx', '160');
+    fg.setAttribute('cy', '160');
+    fg.setAttribute('r', radius);
+    fg.setAttribute('stroke', '#27ae60');
+    fg.setAttribute('stroke-width', stroke);
+    fg.setAttribute('fill', 'none');
+    fg.setAttribute('stroke-dasharray', circ);
+    fg.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(fg);
+    circleDiv.appendChild(svg);
+    // Time text
+    timeDiv = document.createElement('div');
+    timeDiv.className = 'timer-time';
+    timeDiv.innerHTML = formatTime(remaining, t.unit) + `<span class="timer-unit">${t.unit}</span>`;
+    circleDiv.appendChild(timeDiv);
+
+    // Controls inside the circle
+    const controls = document.createElement('div');
+    controls.className = 'timer-controls';
+    const pauseBtn = document.createElement('button');
+    pauseBtn.className = 'timer-pause-btn';
+    pauseBtn.innerHTML = paused ? '\u25B6' : '\u23F8'; // Play ▶ or Pause ⏸
+    pauseBtn.title = paused ? 'Resume' : 'Pause';
+    pauseBtn.onclick = e => {
+      e.preventDefault();
+      paused = !paused;
+      pauseBtn.innerHTML = paused ? '\u25B6' : '\u23F8';
+      pauseBtn.title = paused ? 'Resume' : 'Pause';
+    };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'timer-cancel-btn';
+    cancelBtn.innerHTML = '\u2716'; // Heavy Multiplication X ✖
+    cancelBtn.title = 'Cancel';
+    cancelBtn.onclick = e => {
+      e.preventDefault();
+      clearInterval(interval);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      overlay.remove();
+      document.querySelector('.import-export-bar').style.display = '';
+      document.querySelector('main.timeline').style.display = '';
+      timerSession = null;
+    };
+    controls.appendChild(pauseBtn);
+    controls.appendChild(cancelBtn);
+    circleDiv.appendChild(controls);
+    card.appendChild(circleDiv);
+
+    // Start animating progress
+    if (!timerStartTime) {
+      timerStartTime = performance.now();
+      timerAccumulatedPause = 0;
+    }
+    animating = true;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    animationFrameId = requestAnimationFrame(animateProgress);
+  }
+
+  function animateProgress(now) {
+    if (!animating || !fg || idx >= timers.length) return;
+    const t = timers[idx];
+    const totalSeconds = t.unit === 'minutes' ? t.value * 60 : t.value;
+    let elapsed;
+    if (paused) {
+      if (!timerPausedAt) timerPausedAt = now;
+      elapsed = (timerPausedAt - timerStartTime - timerAccumulatedPause) / 1000;
+    } else {
+      if (timerPausedAt) {
+        timerAccumulatedPause += now - timerPausedAt;
+        timerPausedAt = null;
+      }
+      elapsed = (now - timerStartTime - timerAccumulatedPause) / 1000;
+    }
+    let displayRemaining = totalSeconds - elapsed;
+    if (displayRemaining < 0) displayRemaining = 0;
+    // Animate the stroke-dashoffset (no CSS transition, JS only)
+    const offset = circ * (1 - displayRemaining / totalSeconds);
+    fg.style.transition = 'none';
+    fg.setAttribute('stroke-dashoffset', offset);
+    // Animate the time text as well (optional, for smooth seconds)
+    if (timeDiv) {
+      let shown = Math.ceil(displayRemaining);
+      if (shown < 0) shown = 0;
+      timeDiv.innerHTML = formatTime(shown, t.unit);
+    }
+    // If not paused and not finished, keep animating
+    if ((!paused && displayRemaining > 0) || (paused && displayRemaining > 0)) {
+      animationFrameId = requestAnimationFrame(animateProgress);
+    }
+  }
+
+  renderTimer();
+  let lastBeepSecond = null;
+  interval = setInterval(() => {
+    if (!paused) {
+      const t = timers[idx];
+      const totalSeconds = t.unit === 'minutes' ? t.value * 60 : t.value;
+      let elapsed = (performance.now() - timerStartTime - timerAccumulatedPause) / 1000;
+      let newRemaining = Math.ceil(totalSeconds - elapsed);
+      if (newRemaining < 0) newRemaining = 0;
+      // Beep for last 5 seconds (only once per second)
+      if (newRemaining > 0 && newRemaining <= 5 && newRemaining !== lastBeepSecond) {
+        beep();
+        lastBeepSecond = newRemaining;
+      }
+      if (newRemaining !== remaining) {
+        remaining = newRemaining;
+        if (remaining <= 0) {
+          buzzer();
+          idx++;
+          if (idx < timers.length) {
+            timerStartTime = null;
+            remaining = timers[idx].unit === 'minutes' ? timers[idx].value * 60 : timers[idx].value;
+            renderTimer();
+          } else {
+            // Finished one cycle of the group
+            if (currentCycle < repeatCount) {
+              currentCycle++;
+              idx = 0;
+              timerStartTime = null;
+              remaining = timers[idx].unit === 'minutes' ? timers[idx].value * 60 : timers[idx].value;
+              renderTimer();
+            } else {
+              clearInterval(interval);
+              renderTimer(); // This will restore UI
+            }
+          }
+        }
+      }
+    }
+  }, 100);
+  timerSession = { group, overlay };
+}
+    main.appendChild(details);
+  });
+}
+
+
+// --- Add Group ---
+document.getElementById('add-group-btn').onclick = function() {
+  const name = document.getElementById('group-name-input').value.trim();
+  if (!name) return;
+  const payload = loadPayload();
+  // Check for duplicate group names (case-insensitive)
+  if (payload.groups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+    alert('Group already exists.');
+    return;
+  }
+  payload.groups.push({ id: Date.now() + Math.random().toString(36).slice(2), name, timers: [] });
+  savePayload(payload);
+  renderAll();
+  document.getElementById('group-name-input').value = '';
+};
+
+// --- Initial Load ---
+// --- Remove Add Category logic ---
+window.addEventListener('DOMContentLoaded', () => {
+  renderAll();
+});
+</script>
+</html>

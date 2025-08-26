@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Do it!</title>
+  <style>
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      padding: 0.2rem 0.3rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: background 0.15s;
+    }
+    .delete-btn:hover {
+      background: #ffeaea;
+    }
+    .delete-btn svg {
+      width: 1.1em;
+      height: 1.1em;
+      fill: #c0392b;
+      pointer-events: none;
+      display: block;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    header {
+      background: #2d3a4a;
+      color: #fff;
+      padding: 0.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .subtitle {
+      margin: 0.2em 0 0 0;
+      font-size: 1.1em;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+    .import-export-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0 0 0;
+    }
+    .import-export-btn {
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #f7f8fa;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .import-export-btn:hover {
+      background: #e9ecef;
+    }
+    .import-label {
+      margin: 0;
+      display: inline-block;
+    }
+    .deadline-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .timeline.vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem 1rem;
+      margin: 0 auto;
+      max-width: 450px;
+    }
+    details.time-group {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      position: relative;
+      margin-bottom: 0.5rem;
+    }
+    details.time-group summary {
+      display: flex;
+      align-items: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      cursor: default;
+      outline: none;
+      list-style: none;
+      border-radius: 8px 8px 0 0;
+      padding: 0.5em 0 1em 0;
+      user-select: none;
+      pointer-events: none;
+    }
+    details.time-group summary::-webkit-details-marker {
+      display: none;
+    }
+    details.time-group.today { border-top: 4px solid #e74c3c; }
+    details.time-group.this-week { border-top: 4px solid #f39c12; }
+    details.time-group.next-week { border-top: 4px solid #27ae60; }
+    details.time-group.this-month { border-top: 4px solid #219150; }
+    details.time-group.next-month { border-top: 4px solid #19713f; }
+    details.time-group.this-year { border-top: 4px solid #124d2b; }
+    details.time-group.next-year { border-top: 4px solid #7f8c8d; }
+    details.time-group.someday { border-top: 4px solid #b2bec3; }
+    .time-group .collapsible {
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      text-align: left;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 1rem 1.2rem;
+      cursor: pointer;
+      border-radius: 12px 12px 0 0;
+      transition: background 0.2s;
+      color: #222;
+    }
+    .time-group .collapsible[aria-expanded="true"] {
+      background: #f4f6fb;
+    }
+    .time-group .collapsible[aria-expanded="false"] {
+      background: #fff;
+      color: #888;
+    }
+    .time-group .content {
+      padding: 0 1.2rem 1rem 1.2rem;
+      border-radius: 0 0 12px 12px;
+      background: #fff;
+      transition: max-height 0.2s ease;
+    }
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex: 1;
+    }
+    .task {
+      background: #f4f6fb;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 0.9rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.2rem;
+      /* margin-left: auto; */
+      align-items: center;
+    }
+    .task.overdue { background: #ffeaea; color: #c0392b; }
+    .task .deadline {
+      font-size: 0.85em;
+      color: #888;
+      margin-left: auto;
+    }
+    .add-task {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .add-task input, .add-task select {
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+    .add-task button {
+      background: #2d3a4a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .add-task button:hover {
+      background: #1a232e;
+    }
+    @media (max-width: 900px) {
+      .timeline.vertical { max-width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>✔ Just Do It</h1>
+    <p class="subtitle">Let's Do It</p>
+  </header>
+  <div class="import-export-bar">
+    <button id="export-btn" class="import-export-btn">Export</button>
+    <label class="import-export-btn import-label">
+      Import
+      <input id="import-input" type="file" accept="application/json" style="display:none;">
+    </label>
+  </div>
+  <main class="timeline vertical">
+    <section class="add-task">
+      <input type="text" id="task-input" placeholder="What needs to be done?" />
+      <div class="deadline-row">
+        <label for="deadline-input">Deadline (optional):</label>
+        <input type="date" id="deadline-input" class="deadline-input">
+      </div>
+      <button id="add-task-btn">Add Task</button>
+    </section>
+    <details class="time-group today" open>
+      <summary>Today</summary>
+      <ul class="task-list" id="today-list"></ul>
+    </details>
+    <details class="time-group this-week" open>
+      <summary>This Week</summary>
+      <ul class="task-list" id="this-week-list"></ul>
+    </details>
+    <details class="time-group next-week" open>
+      <summary>Next Week</summary>
+      <ul class="task-list" id="next-week-list"></ul>
+    </details>
+    <details class="time-group this-month" open>
+      <summary>This Month</summary>
+      <ul class="task-list" id="this-month-list"></ul>
+    </details>
+    <details class="time-group next-month" open>
+      <summary>Next Month</summary>
+      <ul class="task-list" id="next-month-list"></ul>
+    </details>
+    <details class="time-group this-year" open>
+      <summary>This Year</summary>
+      <ul class="task-list" id="this-year-list"></ul>
+    </details>
+    <details class="time-group next-year" open>
+      <summary>Next Year</summary>
+      <ul class="task-list" id="next-year-list"></ul>
+    </details>
+    <details class="time-group someday" open>
+      <summary>Someday / No Deadline</summary>
+      <ul class="task-list" id="someday-list"></ul>
+    </details>
+  </main>
+</body>
+<script>
+// --- Import/Export ---
+document.getElementById('export-btn').onclick = function() {
+  const tasks = loadTasks();
+  const blob = new Blob([JSON.stringify(tasks, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'todo-tasks.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
+};
+
+document.getElementById('import-input').onchange = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const imported = JSON.parse(evt.target.result);
+      if (!Array.isArray(imported)) throw new Error('Invalid format');
+      if (!confirm('Importing will replace all current tasks. Continue?')) return;
+      saveTasks(imported);
+      renderTasks(imported);
+      alert('Tasks imported successfully.');
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  // Reset input so same file can be imported again if needed
+  e.target.value = '';
+};
+// --- Task Storage ---
+const STORAGE_KEY = 'timeline_todo_tasks';
+function loadTasks() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+function saveTasks(tasks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+// --- Date Helpers ---
+const today = new Date();
+function parseDate(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+function startOfDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function daysBetween(a, b) {
+  return Math.floor((startOfDay(b) - startOfDay(a)) / (1000*60*60*24));
+}
+
+// --- Task Grouping ---
+function getTaskGroup(task) {
+  if (!task.deadline) return 'someday';
+  const deadline = parseDate(task.deadline);
+  if (!deadline) return 'someday';
+  const now = startOfDay(today);
+  const diff = daysBetween(now, deadline);
+  if (diff < 0) return 'today'; // Past deadlines go in 'today'
+  if (diff === 0) return 'today';
+  if (diff <= 6) return 'this-week';
+  if (diff >= 7 && diff <= 13) return 'next-week';
+  if (deadline.getMonth() === now.getMonth() && deadline.getFullYear() === now.getFullYear()) return 'this-month';
+  if (deadline.getMonth() === (now.getMonth()+1)%12 && deadline.getFullYear() === now.getFullYear()) return 'next-month';
+  if (deadline.getFullYear() === now.getFullYear()) return 'this-year';
+  if (deadline.getFullYear() === now.getFullYear()+1) return 'next-year';
+  return 'someday';
+}
+
+// --- Rendering ---
+function renderTasks(tasks) {
+  const groups = {
+    'today': document.getElementById('today-list'),
+    'this-week': document.getElementById('this-week-list'),
+    'next-week': document.getElementById('next-week-list'),
+    'this-month': document.getElementById('this-month-list'),
+    'next-month': document.getElementById('next-month-list'),
+    'this-year': document.getElementById('this-year-list'),
+    'next-year': document.getElementById('next-year-list'),
+    'someday': document.getElementById('someday-list'),
+  };
+  Object.values(groups).forEach(ul => ul.innerHTML = '');
+  // Group tasks by group name
+  const grouped = {};
+  tasks.forEach(task => {
+    const group = getTaskGroup(task);
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push(task);
+  });
+  // For each group, sort by deadline (earliest first, nulls last), then render
+  Object.entries(groups).forEach(([group, ul]) => {
+    const section = ul.closest('.time-group');
+    const groupTasks = (grouped[group] || []).slice().sort((a, b) => {
+      if (!a.deadline && !b.deadline) return 0;
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return parseDate(a.deadline) - parseDate(b.deadline);
+    });
+    ul.innerHTML = '';
+    if (groupTasks.length === 0) {
+      if (section) section.style.display = 'none';
+      return;
+    } else {
+      if (section) section.style.display = '';
+    }
+    groupTasks.forEach(task => {
+      const li = document.createElement('li');
+      li.className = 'task';
+      if (task.deadline) {
+        const deadlineDate = parseDate(task.deadline);
+        // Overdue if deadline is before the start of today
+        if (deadlineDate && startOfDay(deadlineDate) < startOfDay(today)) {
+          li.classList.add('overdue');
+        }
+      }
+      // Task text and deadline label
+      const textSpan = document.createElement('span');
+      textSpan.textContent = task.text;
+      li.appendChild(textSpan);
+      const deadlineDate = task.deadline ? parseDate(task.deadline) : null;
+      let label = ' ';
+      if (deadlineDate) {
+        if (startOfDay(deadlineDate) < startOfDay(today)) label = '(Overdue)';
+        else if (daysBetween(today, deadlineDate) === 0) label = ' ';
+        else if (daysBetween(today, deadlineDate) === 1) label = '(Tomorrow)';
+        else {
+          // Get 3-letter day name
+          const dayShort = deadlineDate.toLocaleDateString(undefined, { weekday: 'short' });
+          const options = { month: 'short', day: 'numeric' };
+          if (deadlineDate.getFullYear() !== today.getFullYear()) options.year = 'numeric';
+          label = `(${dayShort} ${deadlineDate.toLocaleDateString(undefined, options)})`;
+        }
+      }
+      const span = document.createElement('span');
+      span.className = 'deadline';
+      span.textContent = ' ' + label;
+      li.appendChild(span);
+      // Button group for right alignment
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'btn-group';
+      // Edit deadline button with hidden date input, improved clickable area and calendar icon
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-btn';
+      editBtn.title = 'Edit deadline';
+      editBtn.style.background = 'none';
+      editBtn.style.border = 'none';
+      editBtn.style.cursor = 'pointer';
+      editBtn.style.marginLeft = '0.5rem';
+      editBtn.style.position = 'relative';
+      editBtn.style.width = '2em';
+      editBtn.style.height = '2em';
+      editBtn.style.display = 'inline-flex';
+      editBtn.style.alignItems = 'center';
+      editBtn.style.justifyContent = 'center';
+      // Calendar icon similar to native date input
+      editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`;
+      // Hidden date input, covers the icon exactly
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.value = task.deadline || '';
+      input.style.opacity = '0';
+      input.style.position = 'absolute';
+      input.style.left = '0';
+      input.style.top = '0';
+      input.style.width = '100%';
+      input.style.height = '100%';
+      input.style.cursor = 'pointer';
+      input.style.zIndex = '2';
+      input.tabIndex = -1;
+      input.onchange = () => {
+        const idx = tasks.findIndex(t => t.id === task.id);
+        if (idx !== -1) {
+          tasks[idx].deadline = input.value || null;
+          saveTasks(tasks);
+          renderTasks(tasks);
+        }
+      };
+      editBtn.appendChild(input);
+      btnGroup.appendChild(editBtn);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.title = 'Delete';
+      delBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zm-7 4v6m4-6v6" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+      delBtn.onclick = () => {
+        const idx = tasks.findIndex(t => t.id === task.id);
+        if (idx !== -1) {
+          tasks.splice(idx, 1);
+          saveTasks(tasks);
+          renderTasks(tasks);
+        }
+      };
+      btnGroup.appendChild(delBtn);
+      li.appendChild(btnGroup);
+      ul.appendChild(li);
+    });
+  });
+}
+
+// --- Add Task ---
+document.getElementById('add-task-btn').onclick = function() {
+  const text = document.getElementById('task-input').value.trim();
+  const deadline = document.getElementById('deadline-input').value;
+  if (!text) return;
+  const tasks = loadTasks();
+  tasks.push({
+    id: Date.now() + Math.random().toString(36).slice(2),
+    text,
+    deadline: deadline || null
+  });
+  saveTasks(tasks);
+  renderTasks(tasks);
+  document.getElementById('task-input').value = '';
+  document.getElementById('deadline-input').value = '';
+};
+
+// --- Initial Load ---
+window.addEventListener('DOMContentLoaded', () => {
+  const tasks = loadTasks();
+  renderTasks(tasks);
+});
+</script>
+</html>
