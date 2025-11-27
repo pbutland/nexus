@@ -681,19 +681,18 @@
       }
 
       // Determine which units should show decimals
-      // Show decimals for years/months/weeks only when:
-      // 1. Only ONE unit is displayed AND it's years/months/weeks
-      // 2. OR it's the smallest displayed unit among years/months/weeks when multiple are displayed
+      // Show decimals for years/months/weeks/days only when NO smaller units are displayed
+      // (because smaller units already show the remainder)
       const displayedUnits = Object.keys(display);
-      const largeUnits = ['years', 'months', 'weeks'];
+      const largeUnits = ['years', 'months', 'weeks', 'days'];
+      const smallUnits = ['hours', 'minutes', 'seconds'];
       const displayedLargeUnits = displayedUnits.filter(u => largeUnits.includes(u));
+      const displayedSmallUnits = displayedUnits.filter(u => smallUnits.includes(u));
       
       let unitWithDecimals = null;
-      if (displayedLargeUnits.length === 1) {
-        // Only one large unit displayed
-        unitWithDecimals = displayedLargeUnits[0];
-      } else if (displayedLargeUnits.length > 1) {
-        // Multiple large units displayed - use the smallest one
+      // Only show decimals if there are NO small units displayed
+      if (displayedSmallUnits.length === 0 && displayedLargeUnits.length > 0) {
+        // Use the smallest large unit for decimals
         unitWithDecimals = displayedLargeUnits[displayedLargeUnits.length - 1];
       }
 
@@ -702,14 +701,19 @@
         let recalcRemaining = diff;
         
         // Subtract out the larger units
-        if (unitWithDecimals === 'months' || unitWithDecimals === 'weeks') {
+        if (unitWithDecimals === 'months' || unitWithDecimals === 'weeks' || unitWithDecimals === 'days') {
           if (display.years !== undefined) {
             recalcRemaining -= display.years * 365.25 * 24 * 60 * 60 * 1000;
           }
         }
-        if (unitWithDecimals === 'weeks') {
+        if (unitWithDecimals === 'weeks' || unitWithDecimals === 'days') {
           if (display.months !== undefined) {
             recalcRemaining -= display.months * 30.44 * 24 * 60 * 60 * 1000;
+          }
+        }
+        if (unitWithDecimals === 'days') {
+          if (display.weeks !== undefined) {
+            recalcRemaining -= display.weeks * 7 * 24 * 60 * 60 * 1000;
           }
         }
         
@@ -720,6 +724,8 @@
           display.months = recalcRemaining / (30.44 * 24 * 60 * 60 * 1000);
         } else if (unitWithDecimals === 'weeks') {
           display.weeks = recalcRemaining / (7 * 24 * 60 * 60 * 1000);
+        } else if (unitWithDecimals === 'days') {
+          display.days = recalcRemaining / (24 * 60 * 60 * 1000);
         }
       }
 
