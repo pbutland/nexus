@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #2d3a4a;
+      color: #fff;
+      padding: 0.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .subtitle {
+      margin: 0.2em 0 0 0;
+      font-size: 1.1em;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .setup-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 2rem;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+    .input-section {
+      margin-bottom: 1.5rem;
+    }
+    .input-section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+    .datetime-inputs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .datetime-inputs input {
+      flex: 1;
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+    .reset-btn {
+      background: #6c757d;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover {
+      background: #5a6268;
+    }
+    .units-section {
+      margin-bottom: 1.5rem;
+    }
+    .units-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.7rem;
+      margin-top: 0.5rem;
+    }
+    .unit-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem;
+      background: #f4f6fb;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .unit-checkbox:hover {
+      background: #e9ecef;
+    }
+    .unit-checkbox input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      cursor: pointer;
+    }
+    .unit-checkbox label {
+      cursor: pointer;
+      margin: 0;
+      font-weight: 400;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .start-btn, .share-btn {
+      background: #9b59b6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      font-weight: 600;
+    }
+    .start-btn:hover:not(:disabled) {
+      background: #8e44ad;
+    }
+    .start-btn:disabled {
+      background: #d5b8e0;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .share-btn {
+      background: #3498db;
+    }
+    .share-btn:hover {
+      background: #2980b9;
+    }
+    .countdown-display {
+      display: none;
+      width: 100%;
+      text-align: center;
+    }
+    .countdown-display.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+    .countdown-circle {
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border: 3px solid #9b59b6;
+      width: 400px;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .countdown-values {
+      display: grid;
+      gap: 3rem;
+      padding: 2rem;
+      height: 100%;
+      align-content: center;
+      justify-content: center;
+      justify-items: center;
+    }
+    .countdown-values.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .countdown-values.cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    /* For odd number of items, make last item span all columns */
+    .countdown-values.cols-2 .countdown-unit:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+    .countdown-values.cols-3 .countdown-unit:last-child:nth-child(7) {
+      grid-column: 2 / 3;
+    }
+    .countdown-values.size-1 .countdown-number {
+      font-size: 6.48rem;
+    }
+    .countdown-values.size-1 .countdown-label {
+      font-size: 1.51rem;
+    }
+    .countdown-values.size-2 .countdown-number {
+      font-size: 5.18rem;
+    }
+    .countdown-values.size-2 .countdown-label {
+      font-size: 1.30rem;
+    }
+    .countdown-values.size-3 .countdown-number {
+      font-size: 3.89rem;
+    }
+    .countdown-values.size-3 .countdown-label {
+      font-size: 1.13rem;
+    }
+    .countdown-values.size-4 .countdown-number {
+      font-size: 3.24rem;
+    }
+    .countdown-values.size-4 .countdown-label {
+      font-size: 1.08rem;
+    }
+    .countdown-values.size-5 .countdown-number {
+      font-size: 2.59rem;
+    }
+    .countdown-values.size-5 .countdown-label {
+      font-size: 1.03rem;
+    }
+    .countdown-values.size-6 .countdown-number {
+      font-size: 2.27rem;
+    }
+    .countdown-values.size-6 .countdown-label {
+      font-size: 0.97rem;
+    }
+    .countdown-values.size-7 .countdown-number {
+      font-size: 1.94rem;
+    }
+    .countdown-values.size-7 .countdown-label {
+      font-size: 0.92rem;
+    }
+    .countdown-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .countdown-number {
+      font-weight: 700;
+      color: #9b59b6;
+      line-height: 1;
+    }
+    .countdown-label {
+      color: #888;
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .countdown-actions {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    .back-btn, .share-btn-icon {
+      background: #6c757d;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      padding: 0;
+      width: 3.5rem;
+      height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .back-btn:hover, .share-btn-icon:hover {
+      background: #5a6268;
+      transform: scale(1.05);
+    }
+    .share-btn-icon {
+      background: #3498db;
+    }
+    .share-btn-icon:hover {
+      background: #2980b9;
+    }
+    .back-btn svg, .share-btn-icon svg {
+      width: 1.5rem;
+      height: 1.5rem;
+      stroke: #fff;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .back-btn svg {
+      fill: none;
+    }
+    .share-btn-icon svg circle {
+      fill: #fff;
+    }
+    .share-btn-icon svg line {
+      fill: none;
+    }
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #27ae60;
+      color: #fff;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    @media (max-width: 700px) {
+      .datetime-inputs {
+        flex-direction: column;
+      }
+      .countdown-circle {
+        width: 90vw;
+        height: 90vw;
+        max-width: 400px;
+        max-height: 400px;
+      }
+      .countdown-values {
+        gap: 0.6rem;
+        padding: 1.5rem;
+      }
+      .countdown-values.size-1 .countdown-number {
+        font-size: 5.18rem;
+      }
+      .countdown-values.size-2 .countdown-number {
+        font-size: 3.89rem;
+      }
+      .countdown-values.size-3 .countdown-number {
+        font-size: 3.24rem;
+      }
+      .countdown-values.size-4 .countdown-number {
+        font-size: 2.59rem;
+      }
+      .countdown-values.size-5 .countdown-number {
+        font-size: 2.27rem;
+      }
+      .countdown-values.size-6 .countdown-number {
+        font-size: 1.94rem;
+      }
+      .countdown-values.size-7 .countdown-number {
+        font-size: 1.67rem;
+      }
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⏳ Countdown</h1>
+    <p class="subtitle">Count the Moments</p>
+  </header>
+  <main>
+    <div class="setup-card" id="setup-card">
+      <div class="input-section">
+        <label>Target Date & Time</label>
+        <div class="datetime-inputs">
+          <input type="date" id="date-input" placeholder="Select date">
+          <input type="time" id="time-input" placeholder="Select time">
+        </div>
+        <button class="reset-btn" id="reset-btn">Reset</button>
+      </div>
+      
+      <div class="units-section">
+        <label>Display Units</label>
+        <div class="units-grid">
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-years" value="years">
+            <label for="unit-years">Years</label>
+          </div>
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-months" value="months">
+            <label for="unit-months">Months</label>
+          </div>
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-weeks" value="weeks">
+            <label for="unit-weeks">Weeks</label>
+          </div>
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-days" value="days" checked>
+            <label for="unit-days">Days</label>
+          </div>
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-hours" value="hours" checked>
+            <label for="unit-hours">Hours</label>
+          </div>
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-minutes" value="minutes" checked>
+            <label for="unit-minutes">Minutes</label>
+          </div>
+          <div class="unit-checkbox">
+            <input type="checkbox" id="unit-seconds" value="seconds" checked>
+            <label for="unit-seconds">Seconds</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="start-btn" id="start-btn">Start Countdown</button>
+      </div>
+    </div>
+
+    <div class="countdown-display" id="countdown-display">
+      <div class="countdown-circle">
+        <div class="countdown-values" id="countdown-values"></div>
+      </div>
+      <div class="countdown-actions">
+        <button class="share-btn-icon" id="share-btn" title="Share">
+          <svg viewBox="0 0 24 24">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+        <button class="back-btn" id="back-btn" title="Back">
+          <svg viewBox="0 0 24 24">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast">Link copied to clipboard!</div>
+
+  <script>
+    let countdownInterval = null;
+    let targetDateTime = null;
+    let selectedUnits = [];
+
+    // Validate inputs and enable/disable start button
+    function validateInputs() {
+      const dateValue = document.getElementById('date-input').value;
+      const timeValue = document.getElementById('time-input').value;
+      const hasDateTime = dateValue || timeValue;
+      
+      const hasUnits = document.querySelectorAll('.unit-checkbox input[type="checkbox"]:checked').length > 0;
+      
+      const startBtn = document.getElementById('start-btn');
+      startBtn.disabled = !(hasDateTime && hasUnits);
+    }
+
+    // Load from URL params on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const dateParam = params.get('date');
+      const timeParam = params.get('time');
+      const unitsParam = params.get('units');
+
+      if (dateParam) {
+        document.getElementById('date-input').value = dateParam;
+      }
+      if (timeParam) {
+        document.getElementById('time-input').value = timeParam;
+      }
+      if (unitsParam) {
+        const units = unitsParam.split(',');
+        // Uncheck all first
+        document.querySelectorAll('.unit-checkbox input[type="checkbox"]').forEach(cb => {
+          cb.checked = false;
+        });
+        // Check the ones from URL
+        units.forEach(unit => {
+          const checkbox = document.getElementById(`unit-${unit}`);
+          if (checkbox) checkbox.checked = true;
+        });
+      }
+
+      // Add event listeners for validation
+      document.getElementById('date-input').addEventListener('input', validateInputs);
+      document.getElementById('time-input').addEventListener('input', validateInputs);
+      document.querySelectorAll('.unit-checkbox input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', validateInputs);
+      });
+
+      // Initial validation
+      validateInputs();
+
+      // Auto-start if params are present
+      if (dateParam || timeParam) {
+        startCountdown();
+      }
+    });
+
+    // Reset button
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      document.getElementById('date-input').value = '';
+      document.getElementById('time-input').value = '';
+      validateInputs();
+    });
+
+    // Start button
+    document.getElementById('start-btn').addEventListener('click', () => {
+      startCountdown();
+    });
+
+    // Back button
+    document.getElementById('back-btn').addEventListener('click', () => {
+      stopCountdown();
+      document.getElementById('setup-card').style.display = 'block';
+      document.getElementById('countdown-display').classList.remove('active');
+    });
+
+    // Share button
+    document.getElementById('share-btn').addEventListener('click', () => {
+      const dateValue = document.getElementById('date-input').value;
+      const timeValue = document.getElementById('time-input').value;
+      const units = Array.from(document.querySelectorAll('.unit-checkbox input[type="checkbox"]:checked'))
+        .map(cb => cb.value);
+      
+      const params = new URLSearchParams();
+      if (dateValue) params.set('date', dateValue);
+      if (timeValue) params.set('time', timeValue);
+      if (units.length > 0) params.set('units', units.join(','));
+      
+      const url = window.location.origin + window.location.pathname + '?' + params.toString();
+      
+      // Copy to clipboard
+      navigator.clipboard.writeText(url).then(() => {
+        showToast();
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    });
+
+    function startCountdown() {
+      const dateValue = document.getElementById('date-input').value;
+      const timeValue = document.getElementById('time-input').value;
+      
+      // Validate datetime input
+      if (!dateValue && !timeValue) {
+        return;
+      }
+
+      // Get selected units
+      selectedUnits = Array.from(document.querySelectorAll('.unit-checkbox input[type="checkbox"]:checked'))
+        .map(cb => cb.value);
+      
+      if (selectedUnits.length === 0) {
+        return;
+      }
+
+      // Build target datetime
+      const now = new Date();
+      let targetDate = now;
+      
+      if (dateValue && timeValue) {
+        // Both date and time provided
+        targetDate = new Date(dateValue + 'T' + timeValue);
+      } else if (dateValue) {
+        // Only date provided - use midnight (00:00)
+        targetDate = new Date(dateValue + 'T00:00:00');
+      } else if (timeValue) {
+        // Only time provided - use today's date
+        const todayStr = now.toISOString().split('T')[0];
+        targetDate = new Date(todayStr + 'T' + timeValue);
+        
+        // If the time has already passed today, use tomorrow
+        if (targetDate <= now) {
+          targetDate.setDate(targetDate.getDate() + 1);
+        }
+      }
+
+      targetDateTime = targetDate;
+
+      // Switch to countdown display
+      document.getElementById('setup-card').style.display = 'none';
+      document.getElementById('countdown-display').classList.add('active');
+
+      // Start the countdown
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+
+    function stopCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    function updateCountdown() {
+      if (!targetDateTime) return;
+
+      const now = new Date();
+      let diff = targetDateTime - now;
+
+      // If countdown is over
+      if (diff <= 0) {
+        document.getElementById('countdown-values').innerHTML = 
+          '<div class="countdown-unit"><div class="countdown-number">🎉</div><div class="countdown-label">Time\'s Up!</div></div>';
+        stopCountdown();
+        return;
+      }
+
+      // Calculate time units
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      const weeks = Math.floor(days / 7);
+      const months = Math.floor(days / 30.44); // Average days per month
+      const years = Math.floor(days / 365.25); // Account for leap years
+
+      // Smart display: use largest unit and cascade down
+      const display = {};
+      let remaining = diff;
+
+      if (selectedUnits.includes('years')) {
+        const y = Math.floor(remaining / (365.25 * 24 * 60 * 60 * 1000));
+        if (y > 0 || Object.keys(display).length > 0) {
+          display.years = y;
+          remaining -= y * 365.25 * 24 * 60 * 60 * 1000;
+        }
+      }
+
+      if (selectedUnits.includes('months')) {
+        const m = Math.floor(remaining / (30.44 * 24 * 60 * 60 * 1000));
+        if (m > 0 || Object.keys(display).length > 0) {
+          display.months = m;
+          remaining -= m * 30.44 * 24 * 60 * 60 * 1000;
+        }
+      }
+
+      if (selectedUnits.includes('weeks')) {
+        const w = Math.floor(remaining / (7 * 24 * 60 * 60 * 1000));
+        if (w > 0 || Object.keys(display).length > 0) {
+          display.weeks = w;
+          remaining -= w * 7 * 24 * 60 * 60 * 1000;
+        }
+      }
+
+      if (selectedUnits.includes('days')) {
+        const d = Math.floor(remaining / (24 * 60 * 60 * 1000));
+        if (d > 0 || Object.keys(display).length > 0) {
+          display.days = d;
+          remaining -= d * 24 * 60 * 60 * 1000;
+        }
+      }
+
+      if (selectedUnits.includes('hours')) {
+        const h = Math.floor(remaining / (60 * 60 * 1000));
+        if (h > 0 || Object.keys(display).length > 0) {
+          display.hours = h;
+          remaining -= h * 60 * 60 * 1000;
+        }
+      }
+
+      if (selectedUnits.includes('minutes')) {
+        const m = Math.floor(remaining / (60 * 1000));
+        if (m > 0 || Object.keys(display).length > 0) {
+          display.minutes = m;
+          remaining -= m * 60 * 1000;
+        }
+      }
+
+      if (selectedUnits.includes('seconds')) {
+        const s = Math.floor(remaining / 1000);
+        display.seconds = s;
+      }
+
+      // Render display
+      const valuesContainer = document.getElementById('countdown-values');
+      valuesContainer.innerHTML = '';
+
+      // If no units to display, show 0 for the smallest selected unit
+      if (Object.keys(display).length === 0) {
+        const smallestUnit = selectedUnits[selectedUnits.length - 1];
+        display[smallestUnit] = 0;
+      }
+
+      // Determine which units should show decimals
+      // Show decimals for years/months/weeks only when:
+      // 1. Only ONE unit is displayed AND it's years/months/weeks
+      // 2. OR it's the smallest displayed unit among years/months/weeks when multiple are displayed
+      const displayedUnits = Object.keys(display);
+      const largeUnits = ['years', 'months', 'weeks'];
+      const displayedLargeUnits = displayedUnits.filter(u => largeUnits.includes(u));
+      
+      let unitWithDecimals = null;
+      if (displayedLargeUnits.length === 1) {
+        // Only one large unit displayed
+        unitWithDecimals = displayedLargeUnits[0];
+      } else if (displayedLargeUnits.length > 1) {
+        // Multiple large units displayed - use the smallest one
+        unitWithDecimals = displayedLargeUnits[displayedLargeUnits.length - 1];
+      }
+
+      // Now recalculate the decimal value for the unit that needs it
+      if (unitWithDecimals) {
+        let recalcRemaining = diff;
+        
+        // Subtract out the larger units
+        if (unitWithDecimals === 'months' || unitWithDecimals === 'weeks') {
+          if (display.years !== undefined) {
+            recalcRemaining -= display.years * 365.25 * 24 * 60 * 60 * 1000;
+          }
+        }
+        if (unitWithDecimals === 'weeks') {
+          if (display.months !== undefined) {
+            recalcRemaining -= display.months * 30.44 * 24 * 60 * 60 * 1000;
+          }
+        }
+        
+        // Calculate decimal value
+        if (unitWithDecimals === 'years') {
+          display.years = recalcRemaining / (365.25 * 24 * 60 * 60 * 1000);
+        } else if (unitWithDecimals === 'months') {
+          display.months = recalcRemaining / (30.44 * 24 * 60 * 60 * 1000);
+        } else if (unitWithDecimals === 'weeks') {
+          display.weeks = recalcRemaining / (7 * 24 * 60 * 60 * 1000);
+        }
+      }
+
+      // Determine grid layout and font size based on number of units
+      const unitCount = Object.keys(display).length;
+      valuesContainer.className = 'countdown-values';
+      
+      // Set size class for font scaling
+      valuesContainer.classList.add(`size-${unitCount}`);
+      
+      // Set column layout: 2 columns for <=6 units, 3 columns for 7 units
+      if (unitCount <= 6) {
+        valuesContainer.classList.add('cols-2');
+      } else {
+        valuesContainer.classList.add('cols-3');
+      }
+
+      Object.entries(display).forEach(([unit, value]) => {
+        const unitDiv = document.createElement('div');
+        unitDiv.className = 'countdown-unit';
+        
+        // Format value: show decimals for the designated unit
+        let displayValue;
+        if (unit === unitWithDecimals) {
+          // Format to 2 decimal places, then remove trailing zeros
+          displayValue = parseFloat(value.toFixed(2)).toString();
+        } else {
+          displayValue = Math.floor(value).toString();
+        }
+        
+        unitDiv.innerHTML = `
+          <div class="countdown-number">${displayValue}</div>
+          <div class="countdown-label">${unit}</div>
+        `;
+        valuesContainer.appendChild(unitDiv);
+      });
+    }
+
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
