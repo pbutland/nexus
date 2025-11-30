@@ -246,6 +246,39 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
+    .time-complete {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .time-complete-main {
+      font-size: 4rem;
+      font-weight: 700;
+      color: #9b59b6;
+      line-height: 1.2;
+    }
+    .time-complete-sub {
+      font-size: 1.2rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 1rem;
+    }
+    .countdown-circle.pulse {
+      animation: pulse 1.5s ease-in-out 4;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        border-color: #9b59b6;
+      }
+      50% {
+        box-shadow: 0 4px 32px rgba(155, 89, 182, 0.6);
+        border-color: #8e44ad;
+      }
+    }
     .countdown-actions {
       margin-top: 2rem;
       display: flex;
@@ -368,6 +401,10 @@
         </div>
         <button class="reset-btn" id="reset-btn">Reset</button>
       </div>
+      <div class="input-section">
+        <label for="complete-message-input">Completion Message</label>
+        <input type="text" id="complete-message-input" placeholder="Time Reached" value="Time Reached" style="width:100%;padding:0.7rem;border-radius:6px;border:1px solid #d1d5db;font-size:1rem;margin-bottom:0.5rem;">
+      </div>
       
       <div class="units-section">
         <label>Display Units</label>
@@ -457,6 +494,7 @@
       const dateParam = params.get('date');
       const timeParam = params.get('time');
       const unitsParam = params.get('units');
+      const completeMessageParam = params.get('complete');
 
       if (dateParam) {
         document.getElementById('date-input').value = dateParam;
@@ -475,6 +513,9 @@
           const checkbox = document.getElementById(`unit-${unit}`);
           if (checkbox) checkbox.checked = true;
         });
+      }
+      if (completeMessageParam) {
+        document.getElementById('complete-message-input').value = completeMessageParam;
       }
 
       // Add event listeners for validation
@@ -518,11 +559,13 @@
       const timeValue = document.getElementById('time-input').value;
       const units = Array.from(document.querySelectorAll('.unit-checkbox input[type="checkbox"]:checked'))
         .map(cb => cb.value);
+      const completeMessage = document.getElementById('complete-message-input').value;
       
       const params = new URLSearchParams();
       if (dateValue) params.set('date', dateValue);
       if (timeValue) params.set('time', timeValue);
       if (units.length > 0) params.set('units', units.join(','));
+      if (completeMessage && completeMessage !== 'Time Reached') params.set('complete', completeMessage);
       
       const url = window.location.origin + window.location.pathname + '?' + params.toString();
       
@@ -598,8 +641,12 @@
 
       // If countdown is over
       if (diff <= 0) {
-        document.getElementById('countdown-values').innerHTML = 
-          '<div class="countdown-unit"><div class="countdown-number">🎉</div><div class="countdown-label">Time\'s Up!</div></div>';
+        const circle = document.querySelector('.countdown-circle');
+        circle.classList.add('pulse');
+        const valuesContainer = document.getElementById('countdown-values');
+        valuesContainer.className = 'countdown-values';
+        const completeMessage = document.getElementById('complete-message-input').value || 'Time Reached';
+        valuesContainer.innerHTML = `<div class="time-complete"><div class="time-complete-main">${completeMessage}</div></div>`;
         stopCountdown();
         return;
       }
